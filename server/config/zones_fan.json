@@ -1,0 +1,22 @@
+{
+  "units": "m",
+  "tub_size": [3.0, 3.0],
+  "rx": {"pos": [1.5, -0.3]},
+  "tx": [
+    {"id": 1, "pos": [3.0, 3.0], "enabled": true},
+    {"id": 2, "pos": [0.0, 3.0], "enabled": true},
+    {"id": 3, "pos": [1.5, 3.0], "enabled": true}
+  ],
+  "zones": [
+    {"id": 0, "name": "empty",         "center": null,       "rect": null},
+    {"id": 1, "name": "front_left",    "center": [0.5, 0.5], "rect": [0.0, 0.0, 1.0, 1.0]},
+    {"id": 2, "name": "front_center",  "center": [1.5, 0.5], "rect": [1.0, 0.0, 2.0, 1.0]},
+    {"id": 3, "name": "front_right",   "center": [2.5, 0.5], "rect": [2.0, 0.0, 3.0, 1.0]},
+    {"id": 4, "name": "middle_left",   "center": [0.5, 1.5], "rect": [0.0, 1.0, 1.0, 2.0]},
+    {"id": 5, "name": "middle_center", "center": [1.5, 1.5], "rect": [1.0, 1.0, 2.0, 2.0]},
+    {"id": 6, "name": "middle_right",  "center": [2.5, 1.5], "rect": [2.0, 1.0, 3.0, 2.0]},
+    {"id": 7, "name": "back_left",     "center": [0.5, 2.5], "rect": [0.0, 2.0, 1.0, 3.0]},
+    {"id": 8, "name": "back_center",   "center": [1.5, 2.5], "rect": [1.0, 2.0, 2.0, 3.0]},
+    {"id": 9, "name": "back_right",    "center": [2.5, 2.5], "rect": [2.0, 2.0, 3.0, 3.0]}
+  ]
+}

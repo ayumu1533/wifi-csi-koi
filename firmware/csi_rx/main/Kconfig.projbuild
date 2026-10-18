@@ -1,0 +1,26 @@
+menu "CSI RX Configuration"
+
+    config CSI_RX_CHANNEL
+        int "WiFi Channel"
+        range 1 13
+        default 1
+        help
+            ESP-NOWを受信するチャンネル。csi_txの CSI_TX_CHANNEL と一致させること。
+
+    config CSI_RX_USE_USB_SERIAL_JTAG
+        bool "Send CSI over native USB (USB-Serial-JTAG) instead of UART0"
+        default n
+        help
+            有効にすると、CSIフレームをネイティブUSBポート（USB-Serial-JTAG）へ出力する。
+            UART0（CP210x等のUSB-UARTブリッジ側）は通常のログ出力に使われる。
+            UARTのボーレートでは帯域が足りない場合に使う。
+
+    config CSI_RX_BAUD
+        int "UART0 baud rate for CSI frames"
+        depends on !CSI_RX_USE_USB_SERIAL_JTAG
+        default 921600
+        help
+            UART0へCSIフレームを出力するときのボーレート。
+            サーバー側 --baud と一致させること。起動直後のブートログは115200で出る。
+
+endmenu

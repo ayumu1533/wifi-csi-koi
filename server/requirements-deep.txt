@@ -1,0 +1,5 @@
+# 深層学習（--algo mlp / cnn1d / cnn2d）を使うときだけ追加で入れる。RandomForest だけなら不要。
+# CPU版（このPCにはNVIDIAのGPUが無い）。2026-10-06 に Python 3.14.6 で動作確認済み。
+#   .venv/Scripts/python.exe -m pip install -r requirements-deep.txt
+--index-url https://download.pytorch.org/whl/cpu
+torch==2.14.1

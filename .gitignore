@@ -1,0 +1,23 @@
+# ESP-IDF
+firmware/*/build/
+legacy/*/build/
+firmware/*/sdkconfig.old
+legacy/*/sdkconfig.old
+firmware/*/dependencies.lock
+firmware/*/managed_components/
+
+# Python
+server/.venv/
+server/.venv.broken/
+__pycache__/
+*.pyc
+
+# 収集データ・学習済みモデル（必要ならGit LFS等で明示的に管理する）
+server/data/
+*.pkl
+*.jsonl
+track*.csv
+
+# ツール・自動生成物
+.playwright-mcp/
+touchdesigner/Backup/

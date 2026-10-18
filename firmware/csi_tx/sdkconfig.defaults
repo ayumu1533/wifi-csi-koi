@@ -1,0 +1,3 @@
+CONFIG_IDF_TARGET="esp32s3"
+# 10ms周期の送信タスクを1tick=1msで正確に回すため
+CONFIG_FREERTOS_HZ=1000

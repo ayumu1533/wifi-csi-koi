@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CSI収集・学習計画</title>
+<style>
+/* レイアウト: 1カラムの読み物。上に現状の数字、次に結果の図、最後に次にやる手順 */
+:root {
+  --bg: #f7f7f5;
+  --panel: #ffffff;
+  --panel-2: #f0f0ec;
+  --text: #1f2328;
+  --muted: #5d636b;
+  --line: #d9d9d3;
+  --accent: #c2410c;
+  --accent-soft: #fde8dc;
+  --blue: #2563eb;
+  --blue-soft: #dbe7fd;
+  --green: #15803d;
+  --green-soft: #dcf2e3;
+  --warn: #a16207;
+  --warn-soft: #fbf1d0;
+  --red: #b91c1c;
+  --red-soft: #fde2e2;
+  --code-bg: #f1f1ed;
+  --heat: 194, 65, 12;
+  --font-body: "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  --font-mono: "Cascadia Code", Consolas, "BIZ UDGothic", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --panel: #1d2024; --panel-2: #24282d; --text: #e6e7e9; --muted: #a0a6ad;
+    --line: #34393f; --accent: #fb923c; --accent-soft: #3a2518; --blue: #7aa7ff; --blue-soft: #1c2840;
+    --green: #4ade80; --green-soft: #183224; --warn: #facc15; --warn-soft: #3a3214;
+    --red: #f87171; --red-soft: #3b1d1d; --code-bg: #24282d; --heat: 251, 146, 60;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a; --panel: #1d2024; --panel-2: #24282d; --text: #e6e7e9; --muted: #a0a6ad;
+  --line: #34393f; --accent: #fb923c; --accent-soft: #3a2518; --blue: #7aa7ff; --blue-soft: #1c2840;
+  --green: #4ade80; --green-soft: #183224; --warn: #facc15; --warn-soft: #3a3214;
+  --red: #f87171; --red-soft: #3b1d1d; --code-bg: #24282d; --heat: 251, 146, 60;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.8;
+}
+main { max-width: 980px; margin: 0 auto; padding: 32px 16px 80px; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.4; }
+header.top h1 { font-size: 28px; margin: 0 0 4px; }
+header.top p { margin: 0; color: var(--muted); }
+nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 8px; }
+nav.toc a { text-decoration: none; color: var(--text); background: var(--panel); border: 1px solid var(--line);
+  padding: 6px 12px; border-radius: 999px; font-size: 14px; }
+nav.toc a:hover, nav.toc a:focus-visible { border-color: var(--accent); color: var(--accent); }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 24px 24px 20px; margin-top: 28px; }
+section > h2 { margin: 0 0 4px; font-size: 22px; }
+section > .lead { margin: 0 0 16px; color: var(--muted); }
+h3 { font-size: 17px; margin: 24px 0 8px; }
+p { margin: 8px 0; max-width: 70ch; }
+ul, ol { margin: 8px 0; padding-left: 1.4em; }
+li { margin: 2px 0; }
+a { color: var(--blue); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font-family: var(--font-mono); font-size: 0.88em;
+  background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+
+/* 現状の数字 */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.stat .label { font-size: 13px; color: var(--muted); letter-spacing: 0.02em; }
+.stat .value { font-size: 32px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.stat .sub { font-size: 13px; color: var(--muted); }
+.stat.good .value { color: var(--green); }
+.stat.bad .value { color: var(--red); }
+
+/* 注意書き */
+.note { border-radius: 10px; padding: 12px 16px; margin: 14px 0; }
+.note > :first-child { margin-top: 0; }
+.note > :last-child { margin-bottom: 0; }
+.note.warn { background: var(--warn-soft); }
+.note.bad { background: var(--red-soft); }
+.note.good { background: var(--green-soft); }
+.note.info { background: var(--blue-soft); }
+.note strong.tag { display: inline-block; font-size: 13px; letter-spacing: 0.04em; margin-right: 6px; }
+
+/* 表 */
+.table-wrap { overflow-x: auto; margin: 10px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border-bottom: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+th { background: var(--panel-2); font-weight: 600; white-space: nowrap; }
+td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
+tr.best td { background: var(--green-soft); font-weight: 600; }
+.pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.done { background: var(--green-soft); color: var(--green); }
+.pill.next { background: var(--accent-soft); color: var(--accent); }
+.pill.later { background: var(--panel-2); color: var(--muted); }
+
+/* 横棒グラフ（0〜1の正解率） */
+.bars { display: grid; gap: 6px; margin: 12px 0 4px; }
+.bar-row { display: grid; grid-template-columns: 11em 1fr 3.4em; gap: 10px; align-items: center; font-size: 14px; }
+.bar-row .name { min-width: 0; overflow-wrap: anywhere; }
+.bar-track { position: relative; height: 18px; background: var(--panel-2); border-radius: 4px; }
+.bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--muted); }
+.bar-fill.d1 { background: var(--blue); }
+.bar-fill.d2 { background: var(--green); }
+.bar-fill.both { background: var(--warn); }
+.bar-fill.cross { background: var(--red); }
+.bar-fill.fan { background: var(--accent); }
+.bar-chance { position: absolute; top: -3px; bottom: -3px; left: 10%; border-left: 2px dashed var(--text); opacity: 0.55; }
+.bar-row .val { text-align: right; font-variant-numeric: tabular-nums; }
+.bar-axis { display: grid; grid-template-columns: 11em 1fr 3.4em; gap: 10px; font-size: 12px; color: var(--muted); }
+.bar-axis .ticks { position: relative; height: 16px; }
+.bar-axis .ticks span { position: absolute; transform: translateX(-50%); }
+.bar-axis .ticks span:first-child { transform: none; }
+.bar-axis .ticks span:last-child { transform: translateX(-100%); }
+.bar-group { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
+
+/* ゾーンの再現率（3×3） */
+.grids { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 12px; }
+.grid-card { min-width: 0; }
+.grid-card h4 { margin: 0 0 6px; font-size: 15px; }
+.zone-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-width: 300px; }
+.zone { aspect-ratio: 1 / 1; max-width: 100%; border-radius: 6px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; border: 1px solid var(--line); }
+.zone .z { font-size: 12px; color: var(--muted); }
+.zone .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.zone.low { border: 2px solid var(--red); }
+.grid-caption { font-size: 13px; color: var(--muted); margin-top: 6px; max-width: 300px; }
+
+/* 配置図 */
+.layouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 12px; }
+.layout-card { min-width: 0; }
+.layout-card h4 { margin: 0 0 6px; font-size: 15px; }
+.layout-card svg { width: 100%; max-width: 320px; height: auto; display: block; }
+svg .cell { fill: var(--panel-2); stroke: var(--line); stroke-width: 1; }
+svg .cell.weak { fill: var(--red-soft); }
+svg .zlabel { fill: var(--muted); font-size: 13px; font-family: var(--font-body); text-anchor: middle; dominant-baseline: middle; }
+svg .link { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; fill: none; }
+svg .dev-rx { fill: var(--blue); }
+svg .dev-tx { fill: var(--accent); }
+svg .devlabel { fill: var(--text); font-size: 12px; font-weight: 600; font-family: var(--font-body); }
+
+/* コマンド */
+.cmd { position: relative; margin: 10px 0; }
+.cmd pre { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 12px 14px; padding-right: 74px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; }
+.cmd button { position: absolute; top: 8px; right: 8px; font: inherit; font-size: 12px; cursor: pointer;
+  background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 2px 10px; }
+.cmd button:hover { border-color: var(--accent); color: var(--accent); }
+
+/* 手順 */
+ol.steps { list-style: none; padding: 0; counter-reset: step; display: grid; gap: 12px; }
+ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 30px 1fr; gap: 12px; }
+ol.steps > li::before { content: counter(step); width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+ol.steps > li > div { min-width: 0; }
+ol.steps > li strong:first-child { display: block; }
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding-left: 1.6em; position: relative; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 0.45em; width: 14px; height: 14px;
+  border: 2px solid var(--muted); border-radius: 3px; }
+
+footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
+
+@media (max-width: 560px) {
+  section { padding: 18px 16px 16px; }
+  .bar-row, .bar-axis { grid-template-columns: 7.5em 1fr 3em; gap: 8px; font-size: 13px; }
+  header.top h1 { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<header class="top">
+  <h1>CSI収集・学習計画</h1>
+  <p>浴槽ゾーン分類（RX×1 + TX×3、3m×3mを9ゾーン + empty）の、データの集め方と学習の進め方。2026-10-12時点（3日目・扇形まで済）。</p>
+  <p class="small">結果の細かい記録は <a href="results.md">results.md</a>、コマンドの詳しい説明は <a href="runbook.md">runbook.md</a>、データの置き場所は <code>server/data/README.md</code>。</p>
+</header>
+
+<div class="stats">
+  <div class="stat good">
+    <div class="label">4つ角の正解率（2日目、周単位の評価）</div>
+    <div class="value">0.831</div>
+    <div class="sub">3秒平均をかけると 0.869。<code>models/d2/et.pkl</code></div>
+  </div>
+  <div class="stat">
+    <div class="label">扇形の正解率（3日目）</div>
+    <div class="value">0.731</div>
+    <div class="sub">周単位の評価。リアルタイム推定では empty が一度も出ず、ゾーン6に偏った</div>
+  </div>
+  <div class="stat good">
+    <div class="label">empty の再現率（2日目）</div>
+    <div class="value">1.000</div>
+    <div class="sub">1日目は 0.850</div>
+  </div>
+  <div class="stat bad">
+    <div class="label">日をまたいだ正解率</div>
+    <div class="value">0.13</div>
+    <div class="sub">でたらめ（0.10）と同じ。前の日のモデルは使えない</div>
+  </div>
+</div>
+
+<nav class="toc" aria-label="目次">
+  <a href="#schedule">予定と進み具合</a>
+  <a href="#method">評価の方法</a>
+  <a href="#results">精度の結果</a>
+  <a href="#zones">ゾーンごとの当たり方</a>
+  <a href="#crossday">日をまたいだ評価</a>
+  <a href="#plan">収集の計画</a>
+  <a href="#fan">3日目: 扇形の配置</a>
+  <a href="#show">本番の手順</a>
+  <a href="#files">ファイルの置き場所</a>
+</nav>
+
+<section id="schedule">
+  <h2>予定と進み具合</h2>
+  <p class="lead">2日目の結果を受けて、予定を見直した（「4日目に扇形でもう1日」はやめて、本番の当日の収集に回す）。3日目の扇形は、周単位の評価では4つ角より低かった。ただし条件がそろっておらず、評価のばらつきも大きいので、<strong>どちらの配置が良いかはまだ決められない</strong>（<a href="#fan">3日目</a>）。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>日</th><th>状態</th><th>配置</th><th>内容</th><th class="r">正解率（ET）</th><th>データ / モデル</th></tr></thead>
+      <tbody>
+        <tr><td>10/03</td><td><span class="pill done">済</span></td><td>TX×1のみ</td><td>動作テスト（ゾーン1・5・9だけ）</td><td class="r muted">比較不可</td><td><code>d0_2tx_20261003/</code></td></tr>
+        <tr><td>1日目 10/04</td><td><span class="pill done">済</span></td><td>4つ角</td><td>5周・姿勢5種類（各1周）・約32分</td><td class="r num">0.627</td><td><code>d1_corner_20261004/</code><br><code>models/d1/</code></td></tr>
+        <tr class="best"><td>2日目 10/11</td><td><span class="pill done">済</span></td><td>4つ角</td><td>8周・姿勢4種類（各2周）・約42分</td><td class="r num">0.831</td><td><code>d2_corner_20261011/</code><br><code>models/d2/</code></td></tr>
+        <tr><td>3日目 10/12</td><td><span class="pill done">済</span></td><td>扇形</td><td>6周・姿勢3種類（各2周、立つ多め）・約32分</td><td class="r num">0.731</td><td><code>d3_fan_20261012/</code><br><code>models/d3/</code></td></tr>
+        <tr><td>本番の当日（または前日）</td><td><span class="pill next">次</span></td><td>未定</td><td>会場に設置してから、2日目と同じ計画</td><td class="r muted">—</td><td><code>dN_&lt;配置&gt;_YYYYMMDD/</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="method">
+  <h2>評価の方法</h2>
+  <p class="lead">このページの数字は、すべて同じ1つのテスト方法で出している。モデルによって変わるのは、どのデータで学習したかと、データの分け方だけ。</p>
+
+  <h3>共通: データの作り方</h3>
+  <ul>
+    <li>1回の記録（例: 「2周目・ゾーン5・15秒」）を、0.05秒ごとのフレームにそろえる。</li>
+    <li>20フレーム（約1秒）ずつまとめて特徴量（387個の数字）を作る。0.1秒ごとに1件。15秒の記録1回から約133件になる。<strong>この1件1件を当てた割合が「正解率」</strong>。</li>
+    <li>基準（誰もいない状態の形）は、その日の最初に記録した基準を1回分だけ使う。学習用の empty は、各周の「誰もいない」記録を使う。</li>
+    <li>モデルの中身: ExtraTrees（決定木400本）、RandomForest（決定木200本）、kNN（近い5件の多数決）。どれも、記録が多い empty が有利にならないように重みをつける（kNNを除く）。</li>
+  </ul>
+
+  <h3>1. 周単位の交差検証（ほとんどの表の数字）</h3>
+  <p>1周を丸ごとテスト用に取り分け、残りの周で学習して当てる。これを全部の周で順に行い、最後に全部の予測をまとめて採点する。</p>
+  <div class="cmd"><pre>8周の場合:  テスト=1周目 / 学習=2〜8周目
+           テスト=2周目 / 学習=1,3〜8周目
+           …
+           テスト=8周目 / 学習=1〜7周目   → 8回分の予測をまとめて採点</pre></div>
+  <ul>
+    <li>同じ記録のフレームが学習とテストに分かれて入らないように、記録単位（周単位）で分ける。0.1秒違いのフレームはほぼ同じなので、フレーム単位でランダムに分けると、答えを見ながら当てるのと同じになってしまう。</li>
+    <li>保存した <code>.pkl</code> は、この評価のあとで<strong>全部の周で学習し直したもの</strong>。評価の数字は、保存したモデルそのものの成績ではない。</li>
+    <li>コマンドは <code>training.train --split round</code>。</li>
+  </ul>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>表の行</th><th>学習・テストに使ったデータ</th><th class="r">周の数</th></tr></thead>
+      <tbody>
+        <tr><td>1日目だけ</td><td>10/04（4つ角）</td><td class="r">5（学習4周）</td></tr>
+        <tr><td>2日目だけ</td><td>10/11（4つ角）</td><td class="r">8（学習7周）</td></tr>
+        <tr><td>3日目だけ（扇形）</td><td>10/12（扇形）</td><td class="r">6（学習5周）</td></tr>
+        <tr><td>両日</td><td>10/04 と 10/11 を合わせる（基準は2日目）。両日の「1周目」を同じ周として扱い、まとめてテストする</td><td class="r">8</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>2. 「3秒平均」の列</h3>
+  <p>1で出た各ゾーンの確率を、<strong>同じ記録の中で直前30件（約3秒）分平均</strong>してから判定し直す。未来の値は使わない。推定の <code>--proba-window 3</code> と同じ処理で、実際の推定に近づけるための数字。ただし、推定で使っている指数平滑や、確定ゾーンを決めるヒステリシス（一定時間続いたら切り替える仕組み）は入っていない。</p>
+
+  <h3>3. 日をまたいだ評価（0.159 など）</h3>
+  <p>片方の日のデータだけで学習し、もう片方の日を当てる（<code>--split date</code>）。基準をどちらの日のものにするかも、2通り試した。<strong>これだけは「前の日のモデルを次の日に使う」という実際の使い方と同じ条件</strong>で、結果はでたらめと同じだった。</p>
+
+  <h3>4. 学習曲線</h3>
+  <p>1と同じく1周をテスト用に取り分ける。学習には、残りの周を番号順に並べて<strong>先頭から k 周だけ</strong>を使い、k を1ずつ増やす。「学習5周でそろえた比較」（扇形 0.712、4つ角 0.754）は、この k=5 の値。周の数と同時に「どの周が入ったか」も変わるので、伸び方はでこぼこになりやすい。</p>
+
+  <h3>5. あとから追加した確認（3日目）</h3>
+  <ul>
+    <li><strong>時間順の評価</strong>: 前の周だけで学習して、後の周を当てた（例: 学習1〜3周 → テスト4〜6周で 0.671）。</li>
+    <li><strong>記録ごとの集計</strong>: 各記録が何割当たったかを数えた（54回のうち14回は正解0）。</li>
+    <li><strong>リアルタイム推定の集計</strong>: <code>estimate.csv</code> の確定ゾーンの時間と確率を集計した。正解の記録がないので、正解率は出せていない。</li>
+  </ul>
+
+  <div class="note bad">
+    <p><strong class="tag">限界</strong>1〜4のどれも、<strong>収集のときに記録したデータどうし</strong>を当て合っているだけ。案内どおりの場所と姿勢で、移動中は記録していないデータ。テストする周の前後の周も学習に入る。そのため、<strong>リアルタイムで立ったときの当たり方は測れていない</strong>（扇形のゾーン1は評価で 1.00 だったが、リアルタイムでは反応しなかった）。</p>
+  </div>
+
+  <h3>6. これから: 正解付きのテスト用データで採点する</h3>
+  <p>学習が終わったあとで、音声ガイドの収集をもう一度行い、テスト用として別のフォルダに保存する。指示された場所が正解として記録されるので、保存したモデルをそのまま当てれば採点できる。学習には使わないので、<strong>実際の使い方に一番近い評価</strong>になる。</p>
+  <div class="cmd"><pre>$PY -m collection.plan --serial COM3 --zones config/zones_fan.json --out-dir data/d3_fan_20261012/test1 \
+    --rounds 2 --zone-duration 15 --empty-duration 20 \
+    --postures "ゾーンの真ん中に立ってください|ゾーンの真ん中に座ってください"
+$PY -m training.score --model data/models/d3/et.pkl --data data/d3_fan_20261012/test1/calib.jsonl</pre><button type="button">コピー</button></div>
+  <p class="small"><code>--train</code> は付けない（テスト用データで学習し直すと、採点の意味がなくなる）。<code>--baseline data/d3_fan_20261012/test1/baseline.jsonl</code> を足すと、基準をテスト時のものに替えて採点できる（基準の取り直しで直るかの確認）。</p>
+</section>
+
+<section id="results">
+  <h2>精度の結果（12のモデル）</h2>
+  <p class="lead">学習データ4種類 × アルゴリズム3種類（3日目の扇形は配置が違うので、他と混ぜずに学習した）。評価は周を1つ丸ごと抜いて当てる方法（周単位の交差検証）。値は1フレームずつの正解率。</p>
+
+  <div class="bars" role="img" aria-label="モデルごとの正解率の横棒グラフ">
+    <div class="bar-group">1日目だけ</div>
+    <div class="bar-row"><span class="name">ExtraTrees</span><div class="bar-track"><div class="bar-fill d1" style="width:62.7%"></div><div class="bar-chance"></div></div><span class="val">0.627</span></div>
+    <div class="bar-row"><span class="name">RandomForest</span><div class="bar-track"><div class="bar-fill d1" style="width:60.1%"></div><div class="bar-chance"></div></div><span class="val">0.601</span></div>
+    <div class="bar-row"><span class="name">kNN</span><div class="bar-track"><div class="bar-fill d1" style="width:47.8%"></div><div class="bar-chance"></div></div><span class="val">0.478</span></div>
+    <div class="bar-group">2日目だけ</div>
+    <div class="bar-row"><span class="name"><strong>ExtraTrees</strong></span><div class="bar-track"><div class="bar-fill d2" style="width:83.1%"></div><div class="bar-chance"></div></div><span class="val"><strong>0.831</strong></span></div>
+    <div class="bar-row"><span class="name">RandomForest</span><div class="bar-track"><div class="bar-fill d2" style="width:81.1%"></div><div class="bar-chance"></div></div><span class="val">0.811</span></div>
+    <div class="bar-row"><span class="name">kNN</span><div class="bar-track"><div class="bar-fill d2" style="width:63.9%"></div><div class="bar-chance"></div></div><span class="val">0.639</span></div>
+    <div class="bar-group">3日目だけ（扇形）</div>
+    <div class="bar-row"><span class="name">ExtraTrees</span><div class="bar-track"><div class="bar-fill fan" style="width:73.1%"></div><div class="bar-chance"></div></div><span class="val">0.731</span></div>
+    <div class="bar-row"><span class="name">RandomForest</span><div class="bar-track"><div class="bar-fill fan" style="width:66.0%"></div><div class="bar-chance"></div></div><span class="val">0.660</span></div>
+    <div class="bar-row"><span class="name">kNN</span><div class="bar-track"><div class="bar-fill fan" style="width:51.1%"></div><div class="bar-chance"></div></div><span class="val">0.511</span></div>
+    <div class="bar-group">1日目 + 2日目</div>
+    <div class="bar-row"><span class="name">ExtraTrees</span><div class="bar-track"><div class="bar-fill both" style="width:74.6%"></div><div class="bar-chance"></div></div><span class="val">0.746</span></div>
+    <div class="bar-row"><span class="name">RandomForest</span><div class="bar-track"><div class="bar-fill both" style="width:72.6%"></div><div class="bar-chance"></div></div><span class="val">0.726</span></div>
+    <div class="bar-row"><span class="name">kNN</span><div class="bar-track"><div class="bar-fill both" style="width:48.6%"></div><div class="bar-chance"></div></div><span class="val">0.486</span></div>
+    <div class="bar-group">日をまたぐ（1日目で学習 → 2日目を当てる）</div>
+    <div class="bar-row"><span class="name">ExtraTrees</span><div class="bar-track"><div class="bar-fill cross" style="width:15.9%"></div><div class="bar-chance"></div></div><span class="val">0.159</span></div>
+  </div>
+  <div class="bar-axis" aria-hidden="true"><span></span><div class="ticks"><span style="left:0%">0</span><span style="left:25%">0.25</span><span style="left:50%">0.5</span><span style="left:75%">0.75</span><span style="left:100%">1.0</span></div><span></span></div>
+  <div class="legend"><span><i style="border-left:2px dashed var(--text);width:0;border-radius:0"></i>でたらめに選んだときの正解率（10クラスで0.10）</span></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>学習データ</th><th>モデル</th><th class="r">正解率</th><th class="r">macro-F1</th><th class="r">empty再現率</th><th class="r">3秒平均の正解率</th><th>ファイル</th></tr></thead>
+      <tbody>
+        <tr><td>1日目だけ</td><td>ExtraTrees</td><td class="r">0.627</td><td class="r">0.608</td><td class="r">0.850</td><td class="r">0.661</td><td><code>models/d1/et.pkl</code></td></tr>
+        <tr><td>1日目だけ</td><td>RandomForest</td><td class="r">0.601</td><td class="r">0.580</td><td class="r">0.884</td><td class="r">0.637</td><td><code>models/d1/rf.pkl</code></td></tr>
+        <tr><td>1日目だけ</td><td>kNN</td><td class="r">0.478</td><td class="r">0.453</td><td class="r">0.806</td><td class="r">0.551</td><td><code>models/d1/knn.pkl</code></td></tr>
+        <tr class="best"><td>2日目だけ</td><td>ExtraTrees</td><td class="r">0.831</td><td class="r">0.822</td><td class="r">1.000</td><td class="r">0.869</td><td><code>models/d2/et.pkl</code></td></tr>
+        <tr><td>2日目だけ</td><td>RandomForest</td><td class="r">0.811</td><td class="r">0.800</td><td class="r">1.000</td><td class="r">0.848</td><td><code>models/d2/rf.pkl</code></td></tr>
+        <tr><td>2日目だけ</td><td>kNN</td><td class="r">0.639</td><td class="r">0.623</td><td class="r">0.980</td><td class="r">0.712</td><td><code>models/d2/knn.pkl</code></td></tr>
+        <tr><td>3日目だけ（扇形）</td><td>ExtraTrees</td><td class="r">0.731</td><td class="r">0.704</td><td class="r">1.000</td><td class="r">0.747</td><td><code>models/d3/et.pkl</code></td></tr>
+        <tr><td>3日目だけ（扇形）</td><td>RandomForest</td><td class="r">0.660</td><td class="r">0.621</td><td class="r">1.000</td><td class="r">0.661</td><td><code>models/d3/rf.pkl</code></td></tr>
+        <tr><td>3日目だけ（扇形）</td><td>kNN</td><td class="r">0.511</td><td class="r">0.473</td><td class="r">0.968</td><td class="r">0.553</td><td><code>models/d3/knn.pkl</code></td></tr>
+        <tr><td>両日</td><td>ExtraTrees</td><td class="r">0.746</td><td class="r">0.731</td><td class="r">0.992</td><td class="r">0.786</td><td><code>models/d1+d2/et.pkl</code></td></tr>
+        <tr><td>両日</td><td>RandomForest</td><td class="r">0.726</td><td class="r">0.712</td><td class="r">0.946</td><td class="r">0.763</td><td><code>models/d1+d2/rf.pkl</code></td></tr>
+        <tr><td>両日</td><td>kNN</td><td class="r">0.486</td><td class="r">0.450</td><td class="r">0.898</td><td class="r">0.572</td><td><code>models/d1+d2/knn.pkl</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">「3秒平均」は、推定と同じ3秒の確率平均（<code>--proba-window 3</code>）をかけたあとの判定で、実際に使ったときの当たり方に近い。ファイルはすべて <code>server/data/</code> の下。</p>
+
+  <h3>わかったこと</h3>
+  <ul>
+    <li><strong>姿勢を絞って各2周にしたのが一番効いた</strong>（0.627 → 0.831）。1日目は姿勢が1周ずつで、評価のたびに「学習で見ていない姿勢」を当てていた。</li>
+    <li>どのデータでも <strong>ExtraTrees &gt; RandomForest &gt; kNN</strong>。ExtraTreesを使い続ける。</li>
+    <li>1日目のデータを足すと、かえって下がる（0.831 → 0.746）。2日目だけの周（6〜8周目）の当たり方も変わらない。</li>
+    <li>2日目の学習曲線は7周 → 8周でも macro-F1 が +0.024 伸びている。周を増やす余地はまだある。</li>
+    <li>扇形（3日目）も ExtraTrees が一番良く、周単位の評価では4つ角より低い。ただし<strong>リアルタイム推定では、この評価ほど当たらなかった</strong>（<a href="#fan">3日目</a>）。周単位の評価は、実際に使ったときより甘く出る。</li>
+  </ul>
+
+  <h3>2日目の周（姿勢）ごとの正解率</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>姿勢</th><th class="r">1回目の周</th><th class="r">2回目の周</th></tr></thead>
+      <tbody>
+        <tr><td>真ん中に座る</td><td class="r">0.803（1周目）</td><td class="r">0.874（5周目）</td></tr>
+        <tr><td>ずらして座る</td><td class="r">0.767（2周目）</td><td class="r">0.729（6周目）</td></tr>
+        <tr><td>真ん中に立つ</td><td class="r">0.858（3周目）</td><td class="r">0.785（7周目）</td></tr>
+        <tr><td>向きを変えて座る</td><td class="r">0.912（4周目）</td><td class="r">0.910（8周目）</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">「ずらして座る」が最も低い。ゾーンの中で境界に近い位置にいると、隣のゾーンと取り違えやすい。</p>
+</section>
+
+<section id="zones">
+  <h2>ゾーンごとの当たり方</h2>
+  <p class="lead">ExtraTreesの再現率（そのゾーンにいたときに正しく当てた割合）。上が奥、下が手前（RX側）。色が濃いほど高い。赤枠は0.70未満。各ゾーンの記録は1日に5〜8回しかなく、1回分の記録がまるごと外れることも多い（3日目は1回分＝約0.17）。<strong>ゾーンごとの値は誤差が大きい</strong>ので、0.1〜0.2程度の差で良し悪しを決めない。</p>
+  <div class="note bad">
+    <p><strong class="tag">注意</strong><strong>この値は、リアルタイムでゾーンを見分けられることを示していない。</strong> 扇形のゾーン1は 1.00 だが、リアルタイム推定ではゾーン1に立っても反応しなかった。これは「収集した記録どうしを当て合った」ときの値にすぎない。</p>
+    <p>記録の特徴量を比べると、<strong>同じゾーンに別の時に立った記録どうしの差</strong>（扇形 17.4、4つ角 16.5）が、<strong>隣り合うゾーンの差</strong>（扇形 20.1、4つ角 16.9）とほとんど変わらない。同じゾーンに立ち直すだけで、隣のゾーンに移ったのと同じくらい電波が変わる。この差は時間がたつほど大きくなるわけではない（扇形: 記録3回以内の間隔で 16.8、16回以上離れると 17.6）。そのため、ずれの主な原因は時間ではなく、<strong>立つたびの位置・姿勢・向きの違い</strong>と考えられる。位置を見ずに「何周目の記録か」を当てても 0.29 だった（でたらめなら 0.17）。時間の情報も少しは入っているが、主な原因ではない。</p>
+    <p>まずは正解付きのテスト用データ（<code>training.score</code>）で、実際に何割当たるかを測る。</p>
+  </div>
+  <div class="grids">
+    <div class="grid-card">
+      <h4>1日目（10/04）</h4>
+      <div class="zone-grid" id="grid-d1"></div>
+      <p class="grid-caption">empty 0.850。ゾーン8（0.35）・6（0.43）・2（0.48）が低い。</p>
+    </div>
+    <div class="grid-card">
+      <h4>2日目（10/11）</h4>
+      <div class="zone-grid" id="grid-d2"></div>
+      <p class="grid-caption">empty 1.000。6・8は0.84・0.85まで上がった。今の苦手は1（0.62）と5（0.65）。</p>
+    </div>
+    <div class="grid-card">
+      <h4>3日目・扇形（10/12）</h4>
+      <div class="zone-grid" id="grid-d3"></div>
+      <p class="grid-caption">empty 1.000。1は1.00まで上がったが、中央の列 2（0.30）・5（0.58）・8（0.47）と 7（0.50）が低い。</p>
+    </div>
+  </div>
+  <div class="note info">
+    <p><strong class="tag">今の苦手</strong>ゾーン1 → 5（194件）、1 → 7（99件）、5 → 9（161件）、5 → 1（87件）と、<strong>RXと対角のTX3を結ぶ線（1・5・9）の上</strong>で取り違えている。当初は「この線の上はTX3のリンクしか通らないため」と考えた。しかし、ゾーン1はTX1・TX2のリンクにも辺で接している。また3日目の扇形では、リンクの本数と当たり方が対応しなかった（3本すべてが通るゾーン2が最も低く、ほとんど通らないゾーン1が最も高い）。<strong>原因はわかっていない。</strong></p>
+  </div>
+</section>
+
+<section id="crossday">
+  <h2>日をまたいだ評価（最も重要な結果）</h2>
+  <p class="lead">片方の日で学習し、もう片方の日を当てた。基準（誰もいない状態の記録）をどちらの日のものにしても、当たらなかった。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>学習 → テスト</th><th>基準</th><th class="r">正解率</th><th class="r">macro-F1</th><th>様子</th></tr></thead>
+      <tbody>
+        <tr><td>1日目 → 2日目</td><td>1日目</td><td class="r">0.159</td><td class="r">0.052</td><td>ほぼすべてを empty と判定</td></tr>
+        <tr><td>1日目 → 2日目</td><td>2日目</td><td class="r">0.145</td><td class="r">0.025</td><td>同上</td></tr>
+        <tr><td>2日目 → 1日目</td><td>2日目</td><td class="r">0.092</td><td class="r">0.056</td><td>empty を1件も当てない</td></tr>
+        <tr><td>2日目 → 1日目</td><td>1日目</td><td class="r">0.096</td><td class="r">0.039</td><td>同上</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>原因: 誰もいない状態の電波のパターンが、日によってまったく違う</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>TX</th><th class="r">1日目と2日目の基準の相関</th><th class="r">差（正規化振幅の平均）</th></tr></thead>
+      <tbody>
+        <tr><td>TX1 (3,0)</td><td class="r">−0.256</td><td class="r">0.455</td></tr>
+        <tr><td>TX2 (0,3)</td><td class="r">0.527</td><td class="r">0.556</td></tr>
+        <tr><td>TX3 (3,3)</td><td class="r">0.479</td><td class="r">0.281</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>同じ日の中のずれ（10/03の記録で0.05〜0.11）より、ずっと大きい。数cmの位置・向き・高さの違いや、部屋の中の物の配置で、CSIの形は大きく変わる。1日目のあとに機材を片付けて置き直したのが原因と考えるのが自然。</p>
+  <div class="note bad">
+    <p><strong class="tag">決めたこと</strong>本番は<strong>「設置したら動かさない → その場で収集 → その日のデータだけで学習」</strong>で行う。機材を置き直したら、前のデータとモデルは使わない。別の日のデータは、機材を一度も動かしていない場合だけ合わせる。</p>
+  </div>
+</section>
+
+<section id="plan">
+  <h2>収集の計画（2日目以降、毎回共通）</h2>
+  <p class="lead">2日目に使った計画。3日目も本番も、この計画を基本にする。配置を比べるときは、周の数・秒数・姿勢を同じにする。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>項目</th><th>1日目</th><th>2日目以降</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr><td>周の数</td><td class="r">5</td><td class="r"><strong>8</strong></td><td>学習曲線がまだ伸びていた</td></tr>
+        <tr><td>ゾーン1回の記録</td><td class="r">20秒</td><td class="r"><strong>15秒</strong></td><td>1回を長くするより、周を増やして条件のばらつきを学ばせる。ゾーンあたりの合計は100秒 → 120秒に増える</td></tr>
+        <tr><td>empty 1回の記録</td><td class="r">30秒</td><td class="r"><strong>20秒</strong></td><td>emptyは毎周あるので合計は十分（8周で160秒）。基準の記録もこの長さになる</td></tr>
+        <tr><td>移動の待ち時間</td><td colspan="2">ゾーン8秒、empty 12秒（変えない）</td><td></td></tr>
+        <tr><td>合計時間</td><td class="r">約32分</td><td class="r"><strong>約42分</strong>（82回）</td><td>1日目より約10分長いだけ</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>姿勢（4種類を2周ずつ）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>周</th><th>姿勢</th></tr></thead>
+      <tbody>
+        <tr><td>1, 5</td><td>ゾーンの真ん中に座る</td></tr>
+        <tr><td>2, 6</td><td>ゾーンの中で位置をずらして座る</td></tr>
+        <tr><td>3, 7</td><td>ゾーンの真ん中に立つ</td></tr>
+        <tr><td>4, 8</td><td>向きを変えて座る</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">本番の入浴者は座っている時間が長いと考えて、座る姿勢を多めにした。どの姿勢も2周あるので、1周を抜いて評価しても、同じ姿勢がもう1周学習に残る。</p>
+
+  <h3>収集中に気をつけること</h3>
+  <ul class="checklist">
+    <li>RX・TXの位置・高さ・向きをメジャーで測ってメモし、写真を撮る</li>
+    <li>床にテープでゾーンの境界を貼り、体は境界から15〜20cm内側に置く</li>
+    <li>TXのモバイルバッテリーを満充電にする</li>
+    <li>empty中は部屋の外か、領域から2m以上離れた毎回同じ場所に立つ</li>
+    <li>収集者以外は部屋の外へ。ドア・椅子・PCの位置を収集中は動かさない</li>
+    <li>ゾーンの中では小さく動き続ける（完全な静止も、歩き回るのも避ける）</li>
+  </ul>
+</section>
+
+<section id="fan">
+  <h2>3日目: 扇形の配置（2026-10-12、済）</h2>
+  <p class="lead">RXを手前の辺の中央の少し外に置き、TXを奥の辺に3台並べる。中央のリンクは中央の列（2・5・8）を縦に通る。左右のリンクは斜めに走り、手前ではゾーン2を通ってから、左は1の角・4・7、右は3の角・6・9を通る。<strong>ゾーン2は3本すべてが通り、ゾーン1・3は角をかすめるだけ</strong>。</p>
+
+  <div class="note bad">
+    <p><strong class="tag">結果</strong>周単位の評価では、ExtraTreesで正解率 0.731、macro-F1 0.704（4つ角は 0.831 / 0.822）。学習に使う周をそろえて5周で比べると、macro-F1 は扇形 0.712、4つ角 0.754。<strong>ただし、ここから「4つ角のほうが良い」とは言えない。</strong>周の数・姿勢の配分が違い、ゾーンごとの値も誤差が大きいため。さらに<strong>リアルタイム推定では、周単位の評価ほど当たらなかった</strong>（下の「リアルタイム推定」）。配置はまだ決められない。</p>
+  </div>
+
+  <h3>2日目との条件の違い</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>項目</th><th>4つ角（2日目）</th><th>扇形（3日目）</th></tr></thead>
+      <tbody>
+        <tr><td>周の数</td><td class="r">8（約42分）</td><td class="r">6（約32分）</td></tr>
+        <tr><td>姿勢</td><td>座る6周・立つ2周</td><td>立つ4周・座る2周（真ん中に立つ / ずらして立つ / 真ん中に座る を各2周）</td></tr>
+        <tr><td>評価のたびに学習に使う周</td><td class="r">7</td><td class="r">5</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>4つ角と比べた結果（ExtraTrees）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>見るところ</th><th class="r">4つ角（2日目）</th><th class="r">扇形（3日目）</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td>macro-F1</td><td class="r">0.822</td><td class="r">0.704</td><td>扇形が下。ただし学習に使う周の数が違う（7と5）</td></tr>
+        <tr><td>macro-F1（学習5周でそろえた場合）</td><td class="r">0.754</td><td class="r">0.712</td><td>扇形が下。差は0.04で、姿勢の違いや誤差で説明できる範囲</td></tr>
+        <tr><td>ゾーン1・5の再現率</td><td class="r">0.622 / 0.646</td><td class="r">0.996 / 0.578</td><td>誤差が大きく判定できない（1回分の記録で約0.17動く）</td></tr>
+        <tr><td>ゾーン6・8の再現率</td><td class="r">0.836 / 0.851</td><td class="r">0.834 / 0.474</td><td>同上</td></tr>
+        <tr><td>empty再現率</td><td class="r">1.000</td><td class="r">1.000</td><td>評価では同じ。<strong>リアルタイムでは扇形は一度も empty を出さなかった</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>周（姿勢）ごとの正解率（扇形、ExtraTrees）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>姿勢</th><th class="r">1回目の周</th><th class="r">2回目の周</th></tr></thead>
+      <tbody>
+        <tr><td>真ん中に立つ</td><td class="r">0.901（1周目）</td><td class="r">0.901（4周目）</td></tr>
+        <tr><td>ずらして立つ</td><td class="r">0.799（2周目）</td><td class="r">0.470（5周目）</td></tr>
+        <tr><td>真ん中に座る</td><td class="r">0.664（3周目）</td><td class="r">0.658（6周目）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>わかったこと</h3>
+  <ul>
+    <li><strong>誤りのほとんどは、1回分の記録がまるごと外れたもの。</strong> ゾーンの記録54回のうち14回は、正解が1件もなかった。その多くは、記録の全部を同じ別のゾーンと判定していた（例: 3周目のゾーン7 → すべて empty、5周目のゾーン6 → すべて9）。境界で少しずつ取り違えているのではない。記録1回ごとに電波のパターンが違い、学習した記録と似ていないと丸ごと外れる。</li>
+    <li><strong>リンクの本数では説明できない。</strong> 3本すべてが通るゾーン2が最も低く（0.30）、ほとんど通らないゾーン1が最も高い（1.00）。外れた記録はゾーン3・6・7・9にもある。「中央の列は1本のリンクしか通らないから苦手」という以前の説明は誤り。</li>
+    <li>周ごとの正解率: 真ん中に立つ 0.901 / 0.901、ずらして立つ 0.799 / <strong>0.470</strong>、真ん中に座る 0.664 / 0.658。立つ姿勢でも低い周がある。</li>
+    <li>前の周だけで学習して次の周を当てると、0.689 → 0.414 → 0.887 → 0.466 → 0.658 と上下する（学習1〜5周）。周を増やせば上がる、とは言えない。周ごとのばらつきのほうが大きい。</li>
+  </ul>
+
+  <h3>リアルタイム推定（10/12 7:45〜7:55、約10分）</h3>
+  <p><code>data/d3_fan_20261012/estimate.csv</code> から集計した。収集が終わってから15〜25分後の推定。正解（その時どこにいたか）は記録していないので、当たった割合は計算できない。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>見るところ</th><th>リアルタイム推定</th><th>周単位の評価</th></tr></thead>
+      <tbody>
+        <tr><td>確定ゾーンの時間の割合</td><td>6: 376秒（約60%）、1: 84秒、9: 81秒、8: 59秒、2: 16秒、4: 16秒。<strong>0（empty）・3・5・7は一度も出なかった</strong></td><td>—</td></tr>
+        <tr><td>一番高い確率の中央値</td><td class="r">0.28</td><td class="r">0.40</td></tr>
+        <tr><td>一番高い確率が0.5を超えた割合</td><td class="r">1%</td><td class="r">27%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>モデルは、リアルタイムの電波を学習したどのゾーンともあまり似ていないと見ている。誰もいない時間があったのに empty が出なかったのなら、評価の empty 再現率 1.000 は実際には当てはまらない。</p>
+
+  <h3>評価がリアルタイムより甘く出る理由</h3>
+  <ul>
+    <li><strong>同じゾーンに立ち直すだけで、隣のゾーンに移ったのと同じくらい電波が変わる。</strong> 記録の特徴量の差は、同じゾーン・別の時で 17.4、隣り合うゾーンで 20.1 と、ほとんど変わらない（4つ角は 16.5 と 16.9）。周単位の評価では、テストする記録に似た記録が学習側にたまたまあれば当たり、なければ丸ごと外れる。リアルタイムで立ったときの電波が、学習したどの記録とも似ていなければ当たらない。</li>
+    <li>時間によるずれもあるが、主な原因ではない。empty の記録を最初の回と比べると、ずれは 0.30〜0.50 で、おおむね後の周ほど大きい（1回の記録の中の差は 0.11）。ただし同じゾーンの記録どうしの差は、時間が離れてもほとんど増えない（記録3回以内の間隔 16.8、16回以上 17.6）。位置を見ずに「何周目か」を当てても 0.29（でたらめなら 0.17）。</li>
+    <li>前の周だけで学習して後の周を当てると（学習1〜3周 → テスト4〜6周）0.671 で、周単位の評価（0.731）より低い。</li>
+    <li>収集のときは、案内どおりゾーンの中心付近にいて、ゾーン間の移動中は記録していない。リアルタイムでは移動中も判定する。</li>
+  </ul>
+  <div class="note warn">
+    <p><strong class="tag">わかったこと</strong><strong>今の特徴量では、ゾーンの違いが「立つたびの違い」に埋もれている。</strong>周単位の評価の数字（0.73〜0.83）は、リアルタイムの当たり方を表していない。配置の比較より先に、正解付きのテスト用データで実際の当たり方を測り、ゾーンの数・大きさ・特徴量を見直す必要がある。2日目（4つ角）も、10/11のリアルタイム推定で確率がばらけていた（<code>touchdesigner/README.md</code>）ので、扇形だけの問題ではない。</p>
+  </div>
+
+  <h3>3日目にやったこと</h3>
+
+  <div class="layouts">
+    <div class="layout-card">
+      <h4>今: 4つ角（1日目・2日目）</h4>
+      <svg viewBox="0 0 320 320" role="img" aria-label="4つ角の配置図。RXは左下の角、TXは右下・左上・右上の角">
+        <g id="cells-corner"></g>
+        <line class="link" x1="40" y1="280" x2="280" y2="280"/>
+        <line class="link" x1="40" y1="280" x2="40" y2="40"/>
+        <line class="link" x1="40" y1="280" x2="280" y2="40"/>
+        <circle class="dev-rx" cx="40" cy="280" r="8"/>
+        <circle class="dev-tx" cx="280" cy="280" r="8"/>
+        <circle class="dev-tx" cx="40" cy="40" r="8"/>
+        <circle class="dev-tx" cx="280" cy="40" r="8"/>
+        <text class="devlabel" x="8" y="306">RX (0,0)</text>
+        <text class="devlabel" x="232" y="306">TX1 (3,0)</text>
+        <text class="devlabel" x="8" y="24">TX2 (0,3)</text>
+        <text class="devlabel" x="232" y="24">TX3 (3,3)</text>
+      </svg>
+      <p class="grid-caption">2本のリンクが辺に沿って走り、半分は領域の外を通る。1・5・9の対角線をTX3のリンクが通る（赤いゾーンが2日目の苦手。ただし苦手な理由はわかっていない）。</p>
+    </div>
+    <div class="layout-card">
+      <h4>扇形（3日目）</h4>
+      <svg viewBox="0 0 320 320" role="img" aria-label="扇形の配置図。RXは手前の辺の中央の外、TXは奥の辺の左・中央・右">
+        <g id="cells-fan"></g>
+        <line class="link" x1="160" y1="292" x2="40" y2="40"/>
+        <line class="link" x1="160" y1="292" x2="160" y2="40"/>
+        <line class="link" x1="160" y1="292" x2="280" y2="40"/>
+        <circle class="dev-rx" cx="160" cy="292" r="8"/>
+        <circle class="dev-tx" cx="40" cy="40" r="8"/>
+        <circle class="dev-tx" cx="160" cy="40" r="8"/>
+        <circle class="dev-tx" cx="280" cy="40" r="8"/>
+        <text class="devlabel" x="174" y="304">RX (1.5, −0.3)</text>
+        <text class="devlabel" x="8" y="24">TX2 (0,3)</text>
+        <text class="devlabel" x="124" y="24">TX3 (1.5,3)</text>
+        <text class="devlabel" x="232" y="24">TX1 (3,3)</text>
+      </svg>
+      <p class="grid-caption">中央のリンクは2・5・8を縦に通る。左右のリンクは斜めで、手前ではゾーン2を通り、1・3は角をかすめるだけ。赤いゾーンが3日目の苦手（再現率0.6未満）。リンクの通り方と苦手なゾーンは対応していない。</p>
+    </div>
+  </div>
+
+  <ol class="steps">
+    <li><div><strong>機材を置く</strong>
+      <p>アンテナの高さは、本番で座ったときの胸の高さにそろえる（RX・TXとも同じ高さ）。4つ角との違いを配置だけにしたいなら、2日目と同じ高さでもよい。どちらにしたかをメモする。TXのファームウェア（TX ID）は書き換えなくてよい。</p>
+    </div></li>
+    <li><div><strong>扇形用の設定ファイルを作る</strong>
+      <p><code>server/config/zones.json</code> をコピーして <code>server/config/zones_fan.json</code> を作り、<code>rx</code> と <code>tx</code> だけを変える。座標は表示・設置の目安用で、推定には使われない。</p>
+      <div class="cmd"><pre>  "rx": {"pos": [1.5, -0.3]},
+  "tx": [
+    {"id": 1, "pos": [3.0, 3.0], "enabled": true},
+    {"id": 2, "pos": [0.0, 3.0], "enabled": true},
+    {"id": 3, "pos": [1.5, 3.0], "enabled": true}
+  ],</pre><button type="button">コピー</button></div>
+    </div></li>
+    <li><div><strong>疎通を確認する</strong>（Git Bash、<code>server/</code> で）
+      <div class="cmd"><pre>cd server
+PY=.venv/Scripts/python.exe
+$PY -m csi_receiver.receiver --serial COM3</pre><button type="button">コピー</button></div>
+      <p class="small">sensor1〜3 の3台とも、<code>n</code> が毎秒約80〜100ずつ増えればOK。<code>Ctrl+C</code> で止める。</p>
+    </div></li>
+    <li><div><strong>収集する（約32分、学習まで自動）</strong>
+      <p class="small">実際には時間を減らすため、6周・立つ姿勢多めで取った（62回・約32分）。先に <code>--serial COM3</code> と <code>--train</code> を外し、<code>--list</code> を付けて実行すると、計画だけを確認できる。</p>
+      <div class="cmd"><pre>$PY -m collection.plan --serial COM3 --zones config/zones_fan.json --out-dir data/d3_fan_20261012 \
+    --rounds 6 --zone-duration 15 --empty-duration 20 \
+    --postures "ゾーンの真ん中に立ってください|ゾーンの中で位置をずらして立ってください|ゾーンの真ん中に座ってください" \
+    --train</pre><button type="button">コピー</button></div>
+      <p class="small">起動したら、表示される <code>http://&lt;PCのIP&gt;:8765/</code> をスマホで開き、「開始」を押す。あとは音声の案内に従う。止まったときは、表示されるステップ番号から <code>--start-from N --append</code> を付けて再開する。</p>
+    </div></li>
+    <li><div><strong>モデルを <code>models/d3/</code> にまとめ、kNNも学習する</strong>
+      <div class="cmd"><pre>D3=data/d3_fan_20261012
+mkdir -p data/models/d3
+mv $D3/model.pkl data/models/d3/et.pkl;          mv $D3/model.pkl.confusion.csv data/models/d3/et.pkl.confusion.csv
+mv $D3/model_rf.pkl data/models/d3/rf.pkl;       mv $D3/model_rf.pkl.confusion.csv data/models/d3/rf.pkl.confusion.csv
+mv $D3/train_et.log data/models/d3/et.log;       mv $D3/train_rf.log data/models/d3/rf.log
+mv $D3/learning_curve.txt data/models/d3/
+$PY -m training.train --data $D3/calib.jsonl --baseline $D3/baseline.jsonl --zones config/zones_fan.json \
+    --algo knn --split round --window 20 --stride 2 --model-out data/models/d3/knn.pkl > data/models/d3/knn.log 2>&1</pre><button type="button">コピー</button></div>
+      <p class="small">扇形のデータは、4つ角のデータと混ぜて学習しない。10/12の収集では、最後の結果表示で <code>UnicodeDecodeError</code> が出て落ちた（学習とモデルの保存は終わっていた）。この不具合は修正済み。</p>
+    </div></li>
+    <li><div><strong>4つ角と比べる</strong>
+      <p><code>data/models/d3/et.log</code> と <code>data/models/d2/et.log</code> を比べる予定だった。実際には周の数と姿勢が2日目と違ってしまい、差を配置の違いとは言えなくなった。また、周単位の評価はリアルタイム推定より甘く出るので、この表だけでは決められない（結果は上の「4つ角と比べた結果」）。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>見るところ</th><th class="r">4つ角（2日目）</th><th>扇形を採用する目安</th></tr></thead>
+          <tbody>
+            <tr><td>macro-F1</td><td class="r">0.822</td><td>これより上</td></tr>
+            <tr><td>ゾーン1・5の再現率</td><td class="r">0.622 / 0.646</td><td>明らかに上（扇形にする一番の理由）</td></tr>
+            <tr><td>ゾーン6・8の再現率</td><td class="r">0.836 / 0.851</td><td>同じくらい以上</td></tr>
+            <tr><td>empty再現率</td><td class="r">1.000</td><td>同じくらい</td></tr>
+            <tr><td>実際に座って動いたとき</td><td class="r">—</td><td>追従と境界での揺れが同じか良い</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div></li>
+    <li><div><strong>実際に座って確かめる</strong>（機材を動かしていないうちに）
+      <div class="cmd"><pre>$PY -m localization.estimate --serial COM3 --model data/models/d3/et.pkl --remote --out $D3/estimate.csv</pre><button type="button">コピー</button></div>
+      <p class="small">各ゾーンに座り、スマホの表示が正しいゾーンになるまでの時間と、境界で揺れないかを見る。特にゾーン1と5を確かめる。</p>
+    </div></li>
+    <li><div><strong>記録する</strong>
+      <p><a href="results.md">results.md</a> の「2026-10-12 3日目（扇形）」に記録済み。アンテナの高さは記録していない。</p>
+    </div></li>
+  </ol>
+</section>
+
+<section id="show">
+  <h2>本番の手順</h2>
+  <p class="lead">配置はまだ決まっていない（3日目の結果だけでは決められない）。機材を置き直すと前のモデルは使えないので、会場に設置してから収集する。また、今の方法ではリアルタイムで当たらないことがわかったので、<strong>本番の前に、正解付きのテスト用データで実際の当たり方を確かめる</strong>（<code>training.score</code>）。</p>
+  <ol class="steps">
+    <li><div><strong>機材を設置し、以後は動かさない</strong>
+      <p>テープで固定し、位置・高さ・向きを写真に残す。湯量・水位・物の配置も本番と同じにする。</p>
+    </div></li>
+    <li><div><strong>収集する</strong>
+      <p>2日目と同じ計画（約42分）。時間がなければ周を減らす。どの姿勢も2周ずつ入るよう、<code>--postures</code> の種類を周の数の半分にする。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="r">周の数</th><th class="r">時間</th><th>姿勢</th></tr></thead>
+          <tbody>
+            <tr><td class="r">8</td><td class="r">約42分</td><td>4種類（2日目と同じ）</td></tr>
+            <tr><td class="r">6</td><td class="r">約32分</td><td>3種類（例: 真ん中に座る / ずらして座る / 真ん中に立つ）</td></tr>
+            <tr><td class="r">4</td><td class="r">約21分</td><td>2種類（例: 真ん中に座る / ずらして座る）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div></li>
+    <li><div><strong>その日のデータだけで学習する</strong>
+      <p><code>--train</code> で自動学習したモデルを <code>data/models/dN/et.pkl</code> にまとめ、本番に使う（手順は3日目の5と同じ）。</p>
+    </div></li>
+    <li><div><strong>推定を起動する</strong>
+      <div class="cmd"><pre>$PY -m localization.estimate --serial COM3 --model data/models/dN/et.pkl --osc 127.0.0.1:9000 --remote</pre><button type="button">コピー</button></div>
+      <p class="small">本番までに機材が動いてしまったら、2からやり直す。</p>
+    </div></li>
+  </ol>
+</section>
+
+<section id="files">
+  <h2>ファイルの置き場所</h2>
+  <p class="lead">すべて <code>server/data/</code> の下。Gitで管理されないので、必要ならUSBメモリやクラウドにバックアップする。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>場所</th><th>中身</th></tr></thead>
+      <tbody>
+        <tr><td><code>d0_2tx_20261003/</code></td><td>10/03 動作テスト（TX×1）</td></tr>
+        <tr><td><code>d1_corner_20261004/</code></td><td>1日目のデータ（<code>baseline.jsonl</code>・<code>calib.jsonl</code>）と、10/11の推定の記録</td></tr>
+        <tr><td><code>d2_corner_20261011/</code></td><td>2日目のデータ</td></tr>
+        <tr><td><code>d3_fan_20261012/</code></td><td>3日目のデータ（扇形）。設定は <code>config/zones_fan.json</code></td></tr>
+        <tr><td><code>models/d1/</code>・<code>d2/</code>・<code>d3/</code>・<code>d1+d2/</code></td><td>学習に使ったデータごとのモデル。<code>et</code> / <code>rf</code> / <code>knn</code> それぞれの <code>.pkl</code>（モデル）・<code>.log</code>（評価）・<code>.pkl.confusion.csv</code>（混同行列）と、<code>learning_curve.txt</code></td></tr>
+        <tr><td><code>models/cross_date/</code></td><td>日をまたいだ評価</td></tr>
+        <tr><td><code>compare_20261007/</code></td><td>10/07のモデル比較（CNNなど）</td></tr>
+        <tr><td><code>old/</code></td><td>置き換え済みのファイル（<code>models/d1/et.pkl</code> と同じもの）。不要なら消してよい</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">新しいデータは <code>d&lt;日の番号&gt;_&lt;配置&gt;_&lt;日付&gt;/</code>、モデルは <code>models/d&lt;日の番号&gt;/&lt;アルゴリズム&gt;.pkl</code> に置く。</p>
+</section>
+
+<footer>
+  評価の条件: 窓特徴量20フレーム（約1秒、387次元）、stride 2、周単位の交差検証、シード42。Python 3.14.6 / scikit-learn 1.9.0。
+</footer>
+
+</main>
+<script>
+(function () {
+  // ゾーンの再現率（ExtraTrees）。上が奥（7,8,9）、下が手前（1,2,3）
+  var recall = {
+    d1: {1: 0.756, 2: 0.479, 3: 0.713, 4: 0.522, 5: 0.761, 6: 0.433, 7: 0.573, 8: 0.352, 9: 0.638},
+    d2: {1: 0.622, 2: 0.893, 3: 0.852, 4: 0.771, 5: 0.646, 6: 0.836, 7: 0.945, 8: 0.851, 9: 0.807},
+    d3: {1: 0.996, 2: 0.299, 3: 0.828, 4: 0.885, 5: 0.578, 6: 0.834, 7: 0.501, 8: 0.474, 9: 0.758}
+  };
+  var order = [7, 8, 9, 4, 5, 6, 1, 2, 3];
+  Object.keys(recall).forEach(function (day) {
+    var el = document.getElementById("grid-" + day);
+    order.forEach(function (z) {
+      var v = recall[day][z];
+      var cell = document.createElement("div");
+      cell.className = "zone" + (v < 0.7 ? " low" : "");
+      cell.style.background = "rgba(var(--heat), " + (0.08 + v * 0.55).toFixed(2) + ")";
+      cell.innerHTML = '<span class="z">ゾーン' + z + '</span><span class="v">' + v.toFixed(2) + "</span>";
+      el.appendChild(cell);
+    });
+  });
+
+  // 配置図のゾーン（3×3、1マス80px、左上が(40,40)）
+  var weakCorner = {1: true, 5: true};
+  function drawCells(id, weak) {
+    var g = document.getElementById(id);
+    var ns = "http://www.w3.org/2000/svg";
+    order.forEach(function (z, i) {
+      var x = 40 + (i % 3) * 80, y = 40 + Math.floor(i / 3) * 80;
+      var r = document.createElementNS(ns, "rect");
+      r.setAttribute("x", x); r.setAttribute("y", y); r.setAttribute("width", 80); r.setAttribute("height", 80);
+      r.setAttribute("class", "cell" + (weak[z] ? " weak" : ""));
+      g.appendChild(r);
+      var t = document.createElementNS(ns, "text");
+      t.setAttribute("x", x + 22); t.setAttribute("y", y + 18); t.setAttribute("class", "zlabel");
+      t.textContent = z;
+      g.appendChild(t);
+    });
+  }
+  drawCells("cells-corner", weakCorner);
+  drawCells("cells-fan", {2: true, 5: true, 7: true, 8: true});
+
+  // コマンドのコピー
+  document.querySelectorAll(".cmd button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var pre = btn.parentElement.querySelector("pre");
+      var text = pre.textContent;
+      function done() { btn.textContent = "コピーしました"; setTimeout(function () { btn.textContent = "コピー"; }, 1500); }
+      function fallback() {
+        var range = document.createRange(); range.selectNodeContents(pre);
+        var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+        btn.textContent = "選択しました（Ctrl+C）";
+      }
+      try {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } catch (e) { fallback(); }
+    });
+  });
+})();
+</script>
+</body>
+</html>

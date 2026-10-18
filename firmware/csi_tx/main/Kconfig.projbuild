@@ -1,0 +1,27 @@
+menu "CSI TX Configuration"
+
+    config CSI_TX_ID
+        int "TX ID"
+        range 0 254
+        default 1
+        help
+            このTX個体のID。書き込み前にデバイスごとに一意な値へ変更すること。
+            STAのMACアドレスを 02:C5:15:00:00:<ID> に設定し、csi_rxはこの末尾1バイトで
+            TXを識別する（サーバー側のsensor_idと同じ値）。
+
+    config CSI_TX_CHANNEL
+        int "WiFi Channel"
+        range 1 13
+        default 1
+        help
+            ESP-NOWを送信するチャンネル。csi_rxの CSI_RX_CHANNEL と一致させること。
+
+    config CSI_TX_INTERVAL_MS
+        int "Transmit interval (ms)"
+        range 1 1000
+        default 10
+        help
+            ESP-NOWフレームの送信間隔。10ms = 約100Hz/台。
+            台数が増えて衝突でRXの受信レートが落ちる場合は大きくする。
+
+endmenu

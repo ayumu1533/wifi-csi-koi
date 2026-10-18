@@ -1,0 +1,4 @@
+CONFIG_IDF_TARGET="esp32s3"
+# CSI取得に必須（無効だとesp_wifi_set_csi*が使えない）
+CONFIG_ESP_WIFI_CSI_ENABLED=y
+CONFIG_FREERTOS_HZ=1000

@@ -1,0 +1,8 @@
+# 直接依存のみ。バージョンは動作確認済みのものに固定している。
+# 推移的依存まで含めた完全な固定は requirements.lock.txt を参照。
+numpy==2.5.3
+scipy==1.18.1
+scikit-learn==1.9.0
+pandas==3.0.6
+python-osc==1.10.2
+pyserial==3.5
