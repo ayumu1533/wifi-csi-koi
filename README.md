@@ -120,3 +120,8 @@ python -m venv .venv
 - [docs/calibration.md](docs/calibration.md) — データ収集（キャリブレーション）の考え方
 - [docs/results.md](docs/results.md) — 実験結果と考察（日付順）
 - [docs/runbook.md](docs/runbook.md) — 実機で実際に行った手順とコマンドの記録
+
+## ライセンス
+
+All rights reserved. このリポジトリは**閲覧のみ**を目的として公開しています。
+コード・3Dモデル（自作）・画像などの複製・改変・再配布・利用はできません。詳しくは [LICENSE](LICENSE) を見てください。
